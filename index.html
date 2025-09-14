@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OASIS PRO IA – Nexus Tools PR (Local)</title>
+<style>
+  :root{
+    --bg:#0e1a24;
+    --panel:#0f2230;
+    --panel-2:#0c1c28;
+    --ink:#e8f0f6;
+    --muted:#a6bdcc;
+    --accent:#4cc2ff;
+    --ok:#32d296;
+    --warn:#ffcf44;
+    --danger:#ff5678;
+    --line:#163042;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font:15px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    color:var(--ink);
+    background:radial-gradient(1200px 800px at 60% -20%, #19384d 0%, var(--bg) 60%);
+  }
+  header{
+    position:sticky; top:0; z-index:5;
+    background:linear-gradient(180deg, rgba(14,26,36,.95), rgba(14,26,36,.75));
+    backdrop-filter:saturate(140%) blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar{
+    max-width:1100px; margin:auto; padding:14px 18px; display:flex; align-items:center; gap:12px;
+  }
+  .badge{padding:6px 10px; background:#102737; border:1px solid var(--line); border-radius:12px; color:#b8d3e2; font-weight:600}
+  .spacer{flex:1}
+  #logoPreview{height:30px; aspect-ratio:3/1; object-fit:contain; filter:drop-shadow(0 0 4px rgba(76,194,255,.25))}
+  main{max-width:1100px; margin:16px auto 80px; padding:0 18px;}
+  h1{font-size:22px; margin:0}
+  h2{font-size:18px; margin:18px 0 10px}
+  p.muted{color:var(--muted); margin:8px 0 0}
+  .grid{display:grid; gap:14px}
+  .cards{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+  .card{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line);
+    border-radius:14px; padding:16px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    cursor:pointer; text-decoration:none; color:inherit;
+    transition:transform .05s ease, box-shadow .2s ease;
+  }
+  .card:hover{transform:translateY(-1px); box-shadow:0 6px 22px rgba(0,0,0,.25)}
+  .card .left{display:flex; align-items:center; gap:12px}
+  .icon{
+    width:34px; height:34px; border-radius:8px; display:grid; place-items:center;
+    background:#102b3d; border:1px solid var(--line); font-size:18px
+  }
+  .hint{color:#9db7c8; font-size:13px}
+  .chip{padding:2px 8px; background:#0f2b3d; border:1px solid var(--line); border-radius:999px; color:#9bd4ff; font-size:12px}
+  section.panel{
+    margin-top:18px; background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--line); border-radius:14px; padding:16px;
+  }
+  .row{display:flex; gap:12px; flex-wrap:wrap}
+  input, select, textarea, button{
+    background:#0f2738; color:var(--ink); border:1px solid var(--line);
+    border-radius:10px; padding:10px 12px; font:inherit; outline:none;
+  }
+  input::placeholder, textarea::placeholder{color:#7fa2b7}
+  textarea{min-height:90px; resize:vertical}
+  button{cursor:pointer}
+  .btn{background:#16364a}
+  .btn.primary{background:linear-gradient(180deg, #1690e7, #1177c5); border-color:#0a5f9f}
+  .btn.ok{background:linear-gradient(180deg, #2fd29a, #25b682); border-color:#1f9c6f}
+  .btn.warn{background:linear-gradient(180deg, #ffd259, #ffb82a); color:#0b1720; border-color:#d39d18}
+  .btn.danger{background:linear-gradient(180deg, #ff5b7f, #ef3a62); border-color:#c22e4e}
+  .btn.ghost{background:transparent}
+  table{width:100%; border-collapse:collapse; }
+  th, td{padding:10px; border-bottom:1px solid var(--line); vertical-align:top}
+  th{color:#9fc0d4; text-align:left}
+  tr:hover td{background:#0e2434}
+  .right{margin-left:auto}
+  .pill{padding:.25rem .6rem; border-radius:999px; border:1px solid var(--line); background:#112a3c; color:#9fd0ff; font-size:12px}
+  .number{font-variant-numeric:tabular-nums}
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .list{max-height:55vh; overflow:auto; border:1px solid var(--line); border-radius:12px}
+  .footer{margin-top:18px; font-size:12px; color:#8fb0c4}
+  .nowrap{white-space:nowrap}
+  .empty{padding:16px; border:1px dashed var(--line); border-radius:12px; color:#9ab6c7}
+  details{border:1px solid var(--line); border-radius:10px; padding:10px 12px}
+  summary{cursor:pointer; color:#bfe6ff}
+  .kv{display:grid; grid-template-columns:140px 1fr; gap:8px; align-items:center}
+  .hr{height:1px; background:var(--line); margin:12px 0}
+  .hidden{display:none !important}
+  .link{color:#7fd1ff; text-decoration:underline; cursor:pointer}
+  @media (max-width:640px){
+    .kv{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="badge" id="brandBadge">OASIS PRO IA</div>
+    <h1 id="mainTitle">¿Qué deseas hacer?</h1>
+    <span class="spacer"></span>
+    <img id="logoPreview" alt="Logo" />
+    <a class="chip" href="#" id="goDashboard">Dashboard</a>
+  </div>
+</header>
+
+<main id="dashboard" class="grid cards">
+  <a class="card" href="#diagnostico">
+    <div class="left"><div class="icon">🧰</div><div><div>Diagnóstico</div><div class="hint">Buscar códigos</div></div></div>
+    <div class="pill">Buscar códigos</div>
+  </a>
+  <a class="card" href="#agenda">
+    <div class="left"><div class="icon">🗓️</div><div><div>Agenda</div><div class="hint">Citas locales + Google</div></div></div>
+    <div class="pill">Citas</div>
+  </a>
+  <a class="card" href="#cotizaciones">
+    <div class="left"><div class="icon">📄</div><div><div>Cotizaciones</div><div class="hint">Logo, pie, PDF</div></div></div>
+    <div class="pill">Nuevo</div>
+  </a>
+  <a class="card" href="#facturas">
+    <div class="left"><div class="icon">🧾</div><div><div>Facturas</div><div class="hint">Logo, pie, PDF</div></div></div>
+    <div class="pill">Nuevo</div>
+  </a>
+  <a class="card" href="#rendimientos">
+    <div class="left"><div class="icon">📊</div><div><div>Rendimientos</div><div class="hint">Estadísticas</div></div></div>
+    <div class="pill">Panel</div>
+  </a>
+  <a class="card" href="#config">
+    <div class="left"><div class="icon">⚙️</div><div><div>Configuración</div><div class="hint">Logo, contactos, códigos</div></div></div>
+    <div class="pill">Abrir</div>
+  </a>
+  <a class="card" href="#buscar">
+    <div class="left"><div class="icon">🔎</div><div><div>Buscar Códigos de Error</div><div class="hint">Acceso rápido</div></div></div>
+    <div class="pill">Abrir</div>
+  </a>
+</main>
+
+<!-- =============== DIAGNÓSTICO =================== -->
+<section id="diagnostico" class="panel hidden">
+  <div class="toolbar">
+    <h2>🔎 Diagnóstico – Buscar códigos de error de A/A</h2>
+    <span class="spacer"></span>
+    <a class="chip" href="#config">Gestionar códigos</a>
+  </div>
+  <div class="row">
+    <input id="diagQuery" placeholder="Marca, modelo o código (ej: LG E1, P04, F3...)" class="right" style="flex:1 1 420px">
+    <button class="btn primary" onclick="buscarCodigos()">Buscar</button>
+  </div>
+  <div id="diagResults" class="list" style="margin-top:12px"></div>
+</section>
+
+<!-- =============== AGENDA =================== -->
+<section id="agenda" class="panel hidden">
+  <div class="toolbar">
+    <h2>🗓️ Agenda</h2><span class="spacer"></span>
+    <button class="btn ok" onclick="openEventForm()">Nueva cita</button>
+  </div>
+
+  <div id="eventForm" class="hidden">
+    <h3>Crear/Editar cita</h3>
+    <div class="row">
+      <input id="evTitle" placeholder="Título de la cita" style="flex:1 1 260px">
+      <input id="evCliente" list="contactosList" placeholder="Cliente (opcional)" style="flex:1 1 220px">
+      <datalist id="contactosList"></datalist>
+    </div>
+    <div class="row">
+      <input type="datetime-local" id="evInicio">
+      <input type="datetime-local" id="evFin">
+      <input id="evLugar" placeholder="Lugar / dirección" style="flex:1 1 220px">
+    </div>
+    <textarea id="evNotas" placeholder="Notas"></textarea>
+    <div class="toolbar">
+      <button class="btn primary" onclick="saveEvent()">Guardar</button>
+      <button class="btn" onclick="closeEventForm()">Cancelar</button>
+      <span class="spacer"></span>
+      <a id="gcalLink" class="link hidden" target="_blank">Añadir a Google Calendar</a>
+      <a id="icsLink" class="link hidden" download="cita.ics">Descargar ICS</a>
+    </div>
+    <div class="hr"></div>
+  </div>
+
+  <h3>Próximas citas</h3>
+  <div id="eventsTableWrap" class="list"></div>
+</section>
+
+<!-- =============== COTIZACIONES =================== -->
+<section id="cotizaciones" class="panel hidden">
+  <div class="toolbar">
+    <h2>📄 Cotizaciones</h2>
+    <span class="spacer"></span>
+    <button class="btn ok" onclick="nuevoDoc('quote')">Nueva</button>
+  </div>
+  <div id="quotesList" class="list"></div>
+</section>
+
+<!-- =============== FACTURAS =================== -->
+<section id="facturas" class="panel hidden">
+  <div class="toolbar">
+    <h2>🧾 Facturas</h2>
+    <span class="spacer"></span>
+    <button class="btn ok" onclick="nuevoDoc('invoice')">Nueva</button>
+  </div>
+  <div id="invoicesList" class="list"></div>
+</section>
+
+<!-- =============== RENDIMIENTOS =================== -->
+<section id="rendimientos" class="panel hidden">
+  <div class="toolbar"><h2>📊 Rendimientos</h2></div>
+  <div class="row">
+    <div style="flex:1 1 320px">
+      <h3>Totales</h3>
+      <div id="kpis" class="grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px"></div>
+    </div>
+  </div>
+  <h3>Últimos 12 meses</h3>
+  <canvas id="chart" height="220" style="width:100%; background:#0f2738; border:1px solid var(--line); border-radius:12px"></canvas>
+</section>
+
+<!-- =============== CONFIGURACIÓN =================== -->
+<section id="config" class="panel hidden">
+  <div class="toolbar"><h2>⚙️ Configuración</h2></div>
+
+  <details open>
+    <summary>Identidad visual</summary>
+    <div class="kv">
+      <label>Logo (PNG/JPG)</label>
+      <input type="file" id="logoFile" accept="image/*">
+
+      <label>Encabezado</label>
+      <input id="cfgEncabezado" placeholder="Nombre de empresa, RNC, teléfono...">
+
+      <label>Nombre corto (badge)</label>
+      <input id="cfgBadge" placeholder="Texto del recuadro (ej: OASIS PRO IA)">
+
+      <label>Título principal</label>
+      <input id="cfgTitle" placeholder="Título grande (ej: ¿Qué deseas hacer?)">
+
+      <label>Pie de página</label>
+      <textarea id="cfgPie" placeholder="Texto legal / notas para PDF"></textarea>
+    </div>
+    <div class="toolbar"><button class="btn primary" onclick="saveBranding()">Guardar cambios</button></div>
+  </details>
+
+  <div class="hr"></div>
+
+  <details>
+    <summary>Contactos</summary>
+    <div class="row">
+      <input id="cNombre" placeholder="Nombre" />
+      <input id="cEmail" placeholder="Email" />
+      <input id="cTelefono" placeholder="Teléfono" />
+      <input id="cDireccion" placeholder="Dirección" style="flex:1 1 260px" />
+      <button class="btn ok" onclick="addContacto()">Añadir</button>
+    </div>
+    <div class="row">
+      <input type="file" id="importContacts" accept=".json,.csv">
+      <button class="btn" onclick="importarContactos()">Importar JSON/CSV</button>
+      <button class="btn" onclick="exportar('contacts')">Exportar JSON</button>
+    </div>
+    <div id="contactosTabla" class="list" style="margin-top:10px"></div>
+  </details>
+
+  <div class="hr"></div>
+
+  <details>
+    <summary>Códigos de error (JSON/CSV)</summary>
+    <div class="row">
+      <input id="codeMarca" placeholder="Marca" />
+      <input id="codeModelo" placeholder="Modelo" />
+      <input id="codeCodigo" placeholder="Código" />
+      <input id="codeDescripcion" placeholder="Descripción" style="flex:1 1 260px" />
+      <button class="btn ok" onclick="addCodigo()">Añadir</button>
+    </div>
+    <div class="row">
+      <input type="file" id="importCodes" accept=".json,.csv">
+      <button class="btn" onclick="importarCodigos()">Importar JSON/CSV</button>
+      <button class="btn" onclick="exportar('codes')">Exportar JSON</button>
+    </div>
+    <div id="codigosTabla" class="list" style="margin-top:10px"></div>
+  </details>
+
+  <div class="footer">Todos los datos se guardan localmente en <strong>localStorage</strong>. Puedes subir este archivo a GitHub Pages y seguirá funcionando en tu navegador.</div>
+</section>
+
+<!-- =============== BUSCAR (ACCESO RÁPIDO) =================== -->
+<section id="buscar" class="panel hidden">
+  <div class="toolbar">
+    <h2>🔎 Buscar Códigos de Error</h2>
+  </div>
+  <div class="row">
+    <input id="quickQuery" placeholder="Busca por marca, modelo o código" style="flex:1 1 420px">
+    <button class="btn primary" onclick="buscarCodigos(true)">Buscar</button>
+  </div>
+  <div id="quickResults" class="list" style="margin-top:12px"></div>
+</section>
+
+<!-- ================= TEMPLATES ================== -->
+<template id="docFormTpl">
+  <div class="panel" style="margin-top:12px">
+    <h3 class="docTitle"></h3>
+    <div class="row">
+      <select class="docTipo">
+        <option value="quote">Cotización</option>
+        <option value="invoice">Factura</option>
+      </select>
+      <input class="docNumero" placeholder="Número (auto)" />
+      <input type="date" class="docFecha" />
+      <select class="docCliente"></select>
+      <input class="docContacto" list="contactosList" placeholder="o escribir cliente manual" style="flex:1 1 220px">
+    </div>
+
+    <table class="items">
+      <thead><tr><th style="width:36%">Descripción</th><th>Cant.</th><th>Precio</th><th>Impuesto %</th><th>Importe</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="toolbar" style="margin-top:8px">
+      <button class="btn" data-additem>Añadir Ítem</button>
+      <span class="spacer"></span>
+      <div>Subtotal: <b class="number" data-subtotal>0.00</b> &nbsp;|&nbsp; Impuestos: <b class="number" data-tax>0.00</b> &nbsp;|&nbsp; Total: <b class="number" data-total>0.00</b></div>
+    </div>
+
+    <textarea class="docNotas" placeholder="Notas / términos"></textarea>
+
+    <div class="toolbar">
+      <button class="btn ok" data-save>Guardar</button>
+      <button class="btn" data-cancel>Cancelar</button>
+      <span class="spacer"></span>
+      <button class="btn primary" data-print>Ver/Imprimir PDF</button>
+    </div>
+  </div>
+</template>
+
+<script>
+/* ========= UTILIDADES BASICAS ========= */
+const $ = sel => document.querySelector(sel);
+const $all = sel => Array.from(document.querySelectorAll(sel));
+const store = {
+  get k(){ return JSON.parse(localStorage.getItem('oasis-data')||'{}') },
+  set k(v){ localStorage.setItem('oasis-data', JSON.stringify(v)) },
+  put(key, val){ const d=this.k; d[key]=val; this.k=d; },
+  get(key, def){ const d=this.k; return d[key] ?? def }
+};
+function uid(prefix='id'){ return prefix+'_'+Math.random().toString(36).slice(2,9) }
+function money(n){ return (n||0).toLocaleString('es-PR',{minimumFractionDigits:2,maximumFractionDigits:2}) }
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  const headers = lines.shift().split(',').map(s=>s.trim());
+  return lines.map(line=>{
+    const cols = line.split(','); const obj={};
+    headers.forEach((h,i)=>obj[h]= (cols[i]||'').trim()); return obj;
+  });
+}
+function download(filename, text){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type: 'application/json'}));
+  a.download = filename; a.click();
+}
+function today(){ return new Date().toISOString().slice(0,10) }
+
+/* ========= RUTEO SENCILLO ========= */
+function show(hash){
+  const target = (hash||location.hash||'#dashboard').replace('#','');
+  $all('main, section.panel').forEach(el=>el.classList.add('hidden'));
+  if(target==='dashboard') $('#dashboard').classList.remove('hidden');
+  else $('#'+target)?.classList.remove('hidden');
+  if(target==='cotizaciones') renderDocs('quote');
+  if(target==='facturas') renderDocs('invoice');
+  if(target==='config') renderConfig();
+  if(target==='agenda') { renderContactsDatalist(); renderEvents() }
+  if(target==='rendimientos') renderStats();
+  if(target==='diagnostico') $('#diagQuery').focus();
+  if(target==='buscar') $('#quickQuery').focus();
+}
+window.addEventListener('hashchange', ()=>show());
+$('#goDashboard').onclick = (e)=>{ e.preventDefault(); location.hash='#dashboard' };
+
+/* ========= INICIALIZACIÓN ========= */
+(function init(){
+  const d=store.get('settings', {});
+  if(d.logo) $('#logoPreview').src = d.logo;
+  // Aplicar encabezado editable
+  $('#brandBadge').textContent = d.badge || 'OASIS PRO IA';
+  $('#mainTitle').textContent  = d.title || '¿Qué deseas hacer?';
+
+  show();
+  // seed demo data (only first run)
+  if(!store.get('seeded')){
+    store.put('contacts', [
+      {id:uid('c'), nombre:'Cliente Demo', email:'demo@mail.com', telefono:'', direccion:'San Juan'},
+    ]);
+    store.put('codes', [
+      {id:uid('e'), marca:'LG', modelo:'Dual Inverter', codigo:'CH 38', descripcion:'Fuga de refrigerante detectada'},
+      {id:uid('e'), marca:'Samsung', modelo:'A3050', codigo:'E1', descripcion:'Error de comunicación interior/exterior'},
+      {id:uid('e'), marca:'Midea', modelo:'Split', codigo:'P4', descripcion:'Protección de compresor'},
+    ]);
+    store.put('events', []);
+    store.put('quotes', []);
+    store.put('invoices', []);
+    store.put('seeded', true);
+  }
+})();
+
+/* ========= DIAGNÓSTICO ========= */
+function buscarCodigos(quick=false){
+  const q = (quick? $('#quickQuery'): $('#diagQuery')).value.trim().toLowerCase();
+  const list = store.get('codes', []);
+  const res = list.filter(x=>{
+    return [x.marca,x.modelo,x.codigo,x.descripcion].join(' ').toLowerCase().includes(q)
+  });
+  const html = res.length? `<table>
+    <thead><tr><th>Marca</th><th>Modelo</th><th>Código</th><th>Descripción</th></tr></thead>
+    <tbody>${res.map(r=>`<tr><td>${r.marca||''}</td><td>${r.modelo||''}</td><td><b>${r.codigo||''}</b></td><td>${r.descripcion||''}</td></tr>`).join('')}</tbody>
+  </table>` : `<div class="empty">Sin resultados. Prueba otro término o añade códigos en Configuración.</div>`;
+  (quick? $('#quickResults'): $('#diagResults')).innerHTML = html;
+}
+
+/* ========= AGENDA ========= */
+let editingEventId = null;
+function openEventForm(ev=null){
+  $('#eventForm').classList.remove('hidden');
+  if(ev){
+    editingEventId = ev.id;
+    $('#evTitle').value = ev.title||'';
+    $('#evCliente').value = ev.cliente||'';
+    $('#evInicio').value = ev.inicio || '';
+    $('#evFin').value = ev.fin || '';
+    $('#evLugar').value = ev.lugar || '';
+    $('#evNotas').value = ev.notas || '';
+  } else {
+    editingEventId = null;
+    $('#evTitle').value = ''; $('#evCliente').value=''; $('#evLugar').value='';
+    $('#evNotas').value=''; $('#evInicio').value=''; $('#evFin').value='';
+  }
+}
+function closeEventForm(){ $('#eventForm').classList.add('hidden'); $('#gcalLink').classList.add('hidden'); $('#icsLink').classList.add('hidden'); }
+function renderContactsDatalist(){
+  const contacts = store.get('contacts', []);
+  const dl = $('#contactosList'); dl.innerHTML='';
+  contacts.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c.nombre; dl.appendChild(opt);
+  });
+}
+function saveEvent(){
+  const title=$('#evTitle').value.trim();
+  const inicio=$('#evInicio').value; const fin=$('#evFin').value;
+  if(!title || !inicio){ alert('Título e inicio son obligatorios'); return }
+  const e = {
+    id: editingEventId || uid('ev'),
+    title, cliente: $('#evCliente').value.trim(),
+    inicio, fin, lugar: $('#evLugar').value.trim(),
+    notas: $('#evNotas').value.trim()
+  };
+  const list = store.get('events', []);
+  const idx = list.findIndex(x=>x.id===e.id);
+  if(idx>=0) list[idx]=e; else list.push(e);
+  store.put('events', list); renderEvents(); 
+  // Enlaces Google Calendar + ICS
+  const g = gcalURL(e);
+  $('#gcalLink').href = g; $('#gcalLink').classList.remove('hidden');
+  const ics = buildICS(e);
+  $('#icsLink').href = URL.createObjectURL(new Blob([ics], {type:'text/calendar'}));
+  $('#icsLink').classList.remove('hidden');
+}
+function renderEvents(){
+  const list = store.get('events', []).sort((a,b)=> (a.inicio||'').localeCompare(b.inicio||''));
+  const el = $('#eventsTableWrap');
+  if(!list.length){ el.innerHTML='<div class="empty">No hay citas registradas.</div>'; return }
+  el.innerHTML = `<table><thead><tr><th>Fecha</th><th>Título</th><th>Cliente</th><th>Lugar</th><th>Notas</th><th></th></tr></thead><tbody>${
+    list.map(e=>`<tr>
+      <td class="nowrap">${fmtDateTime(e.inicio)}${e.fin? ' – '+fmtDateTime(e.fin):''}</td>
+      <td>${e.title}</td>
+      <td>${e.cliente||''}</td>
+      <td>${e.lugar||''}</td>
+      <td>${(e.notas||'').slice(0,80)}</td>
+      <td class="nowrap">
+        <a class="link" target="_blank" href="${gcalURL(e)}">Google</a> · 
+        <a class="link" href="${URL.createObjectURL(new Blob([buildICS(e)],{type:'text/calendar'}))}" download="cita.ics">ICS</a> · 
+        <a class="link" href="#" onclick='editEvent("${e.id}")'>Editar</a> · 
+        <a class="link" href="#" onclick='delEvent("${e.id}")'>Eliminar</a>
+      </td>
+    </tr>`).join('')
+  }</tbody></table>`;
+}
+function editEvent(id){ const e=store.get('events', []).find(x=>x.id===id); openEventForm(e) }
+function delEvent(id){
+  if(!confirm('Eliminar esta cita?')) return;
+  const list = store.get('events', []).filter(x=>x.id!==id);
+  store.put('events', list); renderEvents();
+}
+function fmtDateTime(s){ if(!s) return ''; const d=new Date(s); return d.toLocaleString() }
+function pad(n){ return String(n).padStart(2,'0') }
+function gcalURL(e){
+  const s = new Date(e.inicio); const f = e.fin? new Date(e.fin): new Date(new Date(e.inicio).getTime()+60*60*1000);
+  const toG = d=> d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+'T'+pad(d.getUTCHours())+pad(d.getUTCMinutes())+'00Z';
+  const dates = `${toG(s)}/${toG(f)}`;
+  const q = new URLSearchParams({
+    action:'TEMPLATE', text:e.title+(e.cliente?` – ${e.cliente}`:''), details:e.notas||'', location:e.lugar||'', dates
+  }).toString();
+  return `https://calendar.google.com/calendar/render?${q}`;
+}
+function buildICS(e){
+  const dt = d=> {
+    const z=new Date(e[d]||e.inicio); 
+    return z.getUTCFullYear()+pad(z.getUTCMonth()+1)+pad(z.getUTCDate())+'T'+pad(z.getUTCHours())+pad(z.getUTCMinutes())+'00Z'
+  };
+  return `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//OASIS PRO IA//ES
+BEGIN:VEVENT
+UID:${e.id}
+DTSTAMP:${dt('inicio')}
+DTSTART:${dt('inicio')}
+DTEND:${dt('fin')}
+SUMMARY:${(e.title||'').replace(/\n/g,' ')}
+LOCATION:${(e.lugar||'').replace(/\n/g,' ')}
+DESCRIPTION:${(e.notas||'').replace(/\n/g,' ')}
+END:VEVENT
+END:VCALENDAR`;
+}
+
+/* ========= DOCS: COTIZACIONES / FACTURAS ========= */
+function nuevoDoc(tipo){
+  const t = document.querySelector('#docFormTpl').content.cloneNode(true);
+  const wrap = document.createElement('div'); wrap.appendChild(t);
+  const form = wrap.querySelector('.panel');
+  form.dataset.tipo = tipo;
+  form.querySelector('.docTitle').textContent = (tipo==='quote'?'Nueva Cotización':'Nueva Factura');
+  const selTipo = form.querySelector('.docTipo'); selTipo.value = tipo;
+  selTipo.onchange = ()=>{ form.dataset.tipo = selTipo.value }
+  form.querySelector('.docFecha').value = today();
+  // cliente select
+  const sel = form.querySelector('.docCliente');
+  sel.innerHTML = '<option value="">Selecciona contacto…</option>' + store.get('contacts', []).map(c=>`<option value="${c.nombre}">${c.nombre}</option>`).join('');
+  // tabla items
+  const tbody = form.querySelector('tbody');
+  function addRow(data={}) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input value="${data.desc||''}" placeholder="Descripción del ítem" style="width:100%"></td>
+      <td><input type="number" min="0" step="1" value="${data.cant||1}" style="width:90px"></td>
+      <td><input type="number" min="0" step="0.01" value="${data.precio||0}" style="width:120px"></td>
+      <td><input type="number" min="0" step="0.01" value="${data.tax||0}" style="width:120px"></td>
+      <td class="number" data-imp>0.00</td>
+      <td class="nowrap"><button class="btn danger" data-del>✕</button></td>`;
+    tbody.appendChild(tr);
+    tr.querySelector('[data-del]').onclick = ()=>{ tr.remove(); recalc() }
+    $all('input', tr).forEach(i=> i.oninput = recalc);
+    recalc();
+  }
+  form.querySelector('[data-additem]').onclick = ()=>addRow();
+  // valores
+  const elSub = form.querySelector('[data-subtotal]');
+  const elTax = form.querySelector('[data-tax]');
+  const elTot = form.querySelector('[data-total]');
+  function recalc(){
+    let sub=0, tax=0;
+    tbody.querySelectorAll('tr').forEach(tr=>{
+      const [desc,cant,precio,taxp] = Array.from(tr.querySelectorAll('input')).map(x=>x.type==='number'?Number(x.value):x.value);
+      const imp = cant * precio; const itax = imp * (taxp/100);
+      sub += imp; tax += itax;
+      tr.querySelector('[data-imp]').textContent = money(imp+itax);
+    });
+    elSub.textContent = money(sub); elTax.textContent = money(tax); elTot.textContent = money(sub+tax);
+  }
+  addRow(); // primera fila
+
+  // guardar
+  form.querySelector('[data-save]').onclick = ()=>{
+    const data = {
+      id: uid(form.dataset.tipo==='quote'?'Q':'F'),
+      tipo: form.dataset.tipo,
+      numero: form.querySelector('.docNumero').value.trim() || autoNumber(form.dataset.tipo),
+      fecha: form.querySelector('.docFecha').value,
+      cliente: form.querySelector('.docCliente').value || form.querySelector('.docContacto').value,
+      notas: form.querySelector('.docNotas').value,
+      items: Array.from(tbody.querySelectorAll('tr')).map(tr=>{
+        const [desc,cant,precio,taxp] = Array.from(tr.querySelectorAll('input')).map(x=> x.type==='number'?Number(x.value):x.value);
+        return {desc, cant, precio, tax:taxp}
+      }),
+    };
+    const list = store.get(form.dataset.tipo==='quote'?'quotes':'invoices', []);
+    list.push(data); store.put(form.dataset.tipo==='quote'?'quotes':'invoices', list);
+    alert('Guardado'); form.remove();
+    renderDocs(form.dataset.tipo);
+  };
+  form.querySelector('[data-cancel]').onclick = ()=> form.remove();
+  form.querySelector('[data-print]').onclick = ()=> printDoc(collectData());
+
+  function collectData(){
+    const data = {
+      tipo: form.dataset.tipo,
+      numero: form.querySelector('.docNumero').value.trim() || autoNumber(form.dataset.tipo),
+      fecha: form.querySelector('.docFecha').value,
+      cliente: form.querySelector('.docCliente').value || form.querySelector('.docContacto').value,
+      notas: form.querySelector('.docNotas').value,
+      items: Array.from(tbody.querySelectorAll('tr')).map(tr=>{
+        const [desc,cant,precio,taxp] = Array.from(tr.querySelectorAll('input')).map(x=> x.type==='number'?Number(x.value):x.value);
+        return {desc, cant, precio, tax:taxp}
+      })
+    }; return data;
+  }
+
+  // insertar debajo del listado correspondiente
+  const anchor = (tipo==='quote')? $('#cotizaciones'): $('#facturas');
+  anchor.appendChild(form);
+}
+function autoNumber(tipo){
+  const key = tipo==='quote'?'quotes':'invoices';
+  const list = store.get(key, []);
+  const next = list.length+1;
+  return (tipo==='quote'?'Q-':'F-') + String(next).padStart(4,'0');
+}
+function renderDocs(tipo){
+  const key = tipo==='quote'?'quotes':'invoices';
+  const wrap = tipo==='quote'? $('#quotesList'): $('#invoicesList');
+  const list = store.get(key, []);
+  if(!list.length){ wrap.innerHTML='<div class="empty">No hay documentos.</div>'; return }
+  wrap.innerHTML = `<table>
+    <thead><tr><th>Número</th><th>Fecha</th><th>Cliente</th><th>Total</th><th></th></tr></thead>
+    <tbody>${
+      list.map(d=>{
+        const tot = d.items.reduce((a,i)=>a+i.cant*i.precio*(1+i.tax/100),0);
+        const pid = persistPrintable(d);
+        return `<tr>
+          <td>${d.numero}</td>
+          <td>${d.fecha||''}</td>
+          <td>${d.cliente||''}</td>
+          <td class="number">${money(tot)}</td>
+          <td class="nowrap">
+            <a class="link" href="#${pid}">Ver</a> · 
+            <a class="link" href="#" onclick='printSaved("${key}","${d.id}")'>Imprimir</a> · 
+            <a class="link" href="#" onclick='editDoc("${key}","${d.id}")'>Editar</a> · 
+            <a class="link" href="#" onclick='delDoc("${key}","${d.id}")'>Eliminar</a>
+          </td>
+        </tr>`
+      }).join('')
+    }</tbody></table>`;
+}
+function editDoc(key,id){
+  const d = store.get(key, []).find(x=>x.id===id); if(!d) return;
+  nuevoDoc(d.tipo);
+  // selecciona el último formulario insertado (cotización/factura)
+  const form = Array.from(document.querySelectorAll('#cotizaciones .panel, #facturas .panel')).pop();
+  form.querySelector('.docNumero').value = d.numero || '';
+  form.querySelector('.docFecha').value = d.fecha || today();
+  form.querySelector('.docCliente').value = d.cliente || '';
+  form.querySelector('.docContacto').value = d.cliente || '';
+  const tbody = form.querySelector('tbody'); tbody.innerHTML='';
+  d.items.forEach(i=>{
+    form.querySelector('[data-additem]').click();
+    const tr = tbody.lastElementChild;
+    tr.querySelectorAll('input')[0].value = i.desc || '';
+    tr.querySelectorAll('input')[1].value = i.cant || 0;
+    tr.querySelectorAll('input')[2].value = i.precio || 0;
+    tr.querySelectorAll('input')[3].value = i.tax || 0;
+    tr.querySelectorAll('input')[0].dispatchEvent(new Event('input'));
+  });
+  form.querySelector('.docNotas').value = d.notas || '';
+}
+function delDoc(key,id){
+  if(!confirm('Eliminar documento?')) return;
+  const list = store.get(key, []).filter(x=>x.id!==id); store.put(key, list);
+  renderDocs(key==='quotes'?'quote':'invoice');
+}
+function printSaved(key,id){
+  const d = store.get(key, []).find(x=>x.id===id); if(!d) return;
+  printDoc(d);
+}
+function persistPrintable(d){
+  const id = uid('doc');
+  localStorage.setItem(id, JSON.stringify({type:'printable', payload:d}));
+  return id;
+}
+window.addEventListener('hashchange', ()=>{
+  const id = location.hash.replace('#','');
+  const m = localStorage.getItem(id);
+  if(m){
+    try{
+      const obj = JSON.parse(m);
+      if(obj.type==='printable'){ openPrintable(obj.payload) }
+    }catch{}
+  }
+});
+function printDoc(d){ openPrintable(d, true) }
+function openPrintable(d, auto=false){
+  const s = store.get('settings',{});
+  const totales = (()=>{ 
+    let sub=0, tax=0; d.items.forEach(i=>{ const imp=i.cant*i.precio; sub+=imp; tax+=imp*(i.tax/100) });
+    return {sub,tax,total:sub+tax}
+  })();
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>${d.tipo==='quote'?'Cotización':'Factura'} ${d.numero}</title>
+  <style>
+    body{font-family:system-ui,Segoe UI,Roboto,Arial; margin:30px; color:#111}
+    .head{display:flex; align-items:flex-start; justify-content:space-between}
+    .id{font-size:20px; font-weight:700}
+    img{height:48px}
+    table{width:100%; border-collapse:collapse; margin-top:16px}
+    th,td{border:1px solid #ddd; padding:8px}
+    th{text-align:left; background:#f6f6f6}
+    .right{text-align:right}
+    .muted{color:#555}
+    .foot{margin-top:18px; font-size:12px; color:#444; white-space:pre-wrap}
+    @media print{ .noprint{display:none} }
+  </style></head><body>
+  <div class="head">
+    <div>${s.logo?`<img src="${s.logo}">`:''}<div class="muted">${(s.encabezado||'').replace(/</g,'&lt;')}</div></div>
+    <div class="id">${d.tipo==='quote'?'COTIZACIÓN':'FACTURA'} <div class="muted">${d.numero||''}</div></div>
+  </div>
+  <div style="margin-top:10px"><b>Cliente:</b> ${d.cliente||''} &nbsp; &nbsp; <b>Fecha:</b> ${d.fecha||''}</div>
+  <table><thead><tr><th style="width:50%">Descripción</th><th>Cant.</th><th>Precio</th><th>Imp. %</th><th class="right">Importe</th></tr></thead>
+  <tbody>${
+    d.items.map(i=>`<tr><td>${i.desc||''}</td><td>${i.cant}</td><td>${money(i.precio)}</td><td>${i.tax}</td><td class="right">${money(i.cant*i.precio*(1+i.tax/100))}</td></tr>`).join('')
+  }</tbody></table>
+  <table style="width:300px; margin-left:auto">
+    <tr><td>Subtotal</td><td class="right">${money(totales.sub)}</td></tr>
+    <tr><td>Impuestos</td><td class="right">${money(totales.tax)}</td></tr>
+    <tr><td><b>Total</b></td><td class="right"><b>${money(totales.total)}</b></td></tr>
+  </table>
+  ${d.notas? `<div style="margin-top:12px"><b>Notas:</b> ${(d.notas||'').replace(/</g,'&lt;')}</div>`:''}
+  <div class="foot">${(s.pie||'').replace(/</g,'&lt;')}</div>
+  <button class="noprint" onclick="print()">Imprimir / Guardar PDF</button>
+  </body></html>`;
+  const w = window.open('','_blank'); w.document.write(html); w.document.close(); if(auto){ w.addEventListener('load', ()=>w.print(), {once:true}); }
+}
+
+/* ========= RENDIMIENTOS ========= */
+function renderStats(){
+  const quotes = store.get('quotes', []);
+  const invoices = store.get('invoices', []);
+  const events = store.get('events', []);
+  const sumDocs = list => list.reduce((a,d)=> a + d.items.reduce((s,i)=> s + i.cant*i.precio*(1+i.tax/100),0), 0);
+  $('#kpis').innerHTML = `
+    <div class="card" style="cursor:default"><div class="left"><div class="icon">📄</div><div><div>Cotizaciones</div><div class="hint">${quotes.length} documentos</div></div></div><div class="pill">$ ${money(sumDocs(quotes))}</div></div>
+    <div class="card" style="cursor:default"><div class="left"><div class="icon">🧾</div><div><div>Facturas</div><div class="hint">${invoices.length} documentos</div></div></div><div class="pill">$ ${money(sumDocs(invoices))}</div></div>
+    <div class="card" style="cursor:default"><div class="left"><div class="icon">🗓️</div><div><div>Citas</div><div class="hint">${events.length} registradas</div></div></div><div class="pill">${events.length}</div></div>
+  `;
+  // gráfico simple canvas (barras)
+  const ctx = $('#chart').getContext('2d');
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  const months = Array.from({length:12}).map((_,i)=>{
+    const d = new Date(); d.setMonth(d.getMonth()- (11-i)); return d;
+  });
+  function monthKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0') }
+  const agg = (docs)=> months.map(m=>{
+    const k = monthKey(m);
+    const val = docs.filter(d=> (d.fecha||'').slice(0,7)===k).reduce((a,d)=> a + d.items.reduce((s,i)=> s + i.cant*i.precio*(1+i.tax/100),0), 0);
+    return val;
+  });
+  const q = agg(quotes), f = agg(invoices);
+  const max = Math.max(1, ...q, ...f);
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const pad = 28, barW = (W - pad*2) / (months.length*2 + 12);
+  ctx.font='12px system-ui'; ctx.textBaseline='middle';
+  months.forEach((m,i)=>{
+    const x = pad + i* (barW*2 + 6);
+    const h1 = (q[i]/max)*(H-70), h2=(f[i]/max)*(H-70);
+    // barras (color por defecto)
+    ctx.fillRect(x, H-30-h1, barW, h1);
+    ctx.fillRect(x+barW+2, H-30-h2, barW, h2);
+    ctx.fillText(m.toLocaleDateString('es-ES',{month:'short'}), x, H-14);
+  });
+  ctx.fillText('Cotizaciones (barra 1)  |  Facturas (barra 2)', 20, 12);
+}
+
+/* ========= CONFIGURACIÓN ========= */
+function renderConfig(){
+  const s = store.get('settings', {});
+  $('#cfgEncabezado').value = s.encabezado||'';
+  $('#cfgPie').value       = s.pie||'';
+  $('#cfgBadge').value     = s.badge || 'OASIS PRO IA';
+  $('#cfgTitle').value     = s.title || '¿Qué deseas hacer?';
+  if(s.logo) $('#logoPreview').src = s.logo;
+
+  // contactos
+  const c = store.get('contacts', []);
+  $('#contactosTabla').innerHTML = c.length? `<table><thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Dirección</th><th></th></tr></thead><tbody>${
+    c.map(x=>`<tr><td>${x.nombre||''}</td><td>${x.email||''}</td><td>${x.telefono||''}</td><td>${x.direccion||''}</td><td><a class="link" href="#" onclick='delContacto("${x.id}")'>Eliminar</a></td></tr>`).join('')
+  }</tbody></table>`: `<div class="empty">No hay contactos.</div>`;
+
+  // códigos
+  const codes = store.get('codes', []);
+  $('#codigosTabla').innerHTML = codes.length? `<table><thead><tr><th>Marca</th><th>Modelo</th><th>Código</th><th>Descripción</th><th></th></tr></thead><tbody>${
+    codes.map(x=>`<tr><td>${x.marca||''}</td><td>${x.modelo||''}</td><td>${x.codigo||''}</td><td>${x.descripcion||''}</td><td><a class="link" href="#" onclick='delCodigo("${x.id}")'>Eliminar</a></td></tr>`).join('')
+  }</tbody></table>`: `<div class="empty">No hay códigos.</div>`;
+}
+function saveBranding(){
+  const s = store.get('settings', {});
+  s.encabezado = $('#cfgEncabezado').value;
+  s.pie        = $('#cfgPie').value;
+  s.badge      = $('#cfgBadge').value || 'OASIS PRO IA';
+  s.title      = $('#cfgTitle').value || '¿Qué deseas hacer?';
+
+  const file = $('#logoFile').files[0];
+
+  const applyUI = ()=>{
+    store.put('settings', s);
+    // aplicar al encabezado inmediatamente
+    $('#brandBadge').textContent = s.badge;
+    $('#mainTitle').textContent  = s.title;
+    if(s.logo) $('#logoPreview').src = s.logo;
+    alert('Guardado');
+  };
+
+  if(file){
+    const fr = new FileReader();
+    fr.onload = ()=>{ s.logo = fr.result; applyUI(); };
+    fr.readAsDataURL(file);
+  } else {
+    applyUI();
+  }
+}
+
+function addContacto(){
+  const obj = {id:uid('c'), nombre:$('#cNombre').value.trim(), email:$('#cEmail').value.trim(), telefono:$('#cTelefono').value.trim(), direccion:$('#cDireccion').value.trim()};
+  if(!obj.nombre){ alert('Nombre es obligatorio'); return }
+  const list = store.get('contacts', []); list.push(obj); store.put('contacts', list);
+  $('#cNombre').value=$('#cEmail').value=$('#cTelefono').value=$('#cDireccion').value='';
+  renderConfig();
+}
+function delContacto(id){
+  if(!confirm('Eliminar contacto?')) return;
+  const list = store.get('contacts', []).filter(x=>x.id!==id); store.put('contacts', list); renderConfig();
+}
+function importarContactos(){
+  const f = $('#importContacts').files[0]; if(!f){ alert('Selecciona un archivo'); return }
+  const fr = new FileReader(); fr.onload = ()=>{
+    let arr=[]; if(f.name.endsWith('.json')) arr = JSON.parse(fr.result);
+    else arr = parseCSV(fr.result);
+    const list = store.get('contacts', []);
+    arr.forEach(x=> list.push({id:uid('c'), nombre:x.nombre||x.name||'', email:x.email||'', telefono:x.telefono||x.phone||'', direccion:x.direccion||x.address||''}));
+    store.put('contacts', list); renderConfig();
+  }; fr.readAsText(f);
+}
+function exportar(kind){
+  const data = store.get(kind==='contacts'?'contacts':'codes', []);
+  download(`${kind}.json`, JSON.stringify(data,null,2));
+}
+function addCodigo(){
+  const obj = {id:uid('e'), marca:$('#codeMarca').value.trim(), modelo:$('#codeModelo').value.trim(), codigo:$('#codeCodigo').value.trim(), descripcion:$('#codeDescripcion').value.trim()};
+  if(!obj.codigo || !obj.marca){ alert('Marca y código son obligatorios'); return }
+  const list = store.get('codes', []); list.push(obj); store.put('codes', list);
+  $('#codeMarca').value=$('#codeModelo').value=$('#codeCodigo').value=$('#codeDescripcion').value='';
+  renderConfig();
+}
+function delCodigo(id){
+  if(!confirm('Eliminar código?')) return;
+  const list = store.get('codes', []).filter(x=>x.id!==id); store.put('codes', list); renderConfig();
+}
+function importarCodigos(){
+  const f = $('#importCodes').files[0]; if(!f){ alert('Selecciona un archivo'); return }
+  const fr = new FileReader(); fr.onload = ()=>{
+    let arr=[]; if(f.name.endsWith('.json')) arr = JSON.parse(fr.result);
+    else arr = parseCSV(fr.result);
+    const list = store.get('codes', []);
+    arr.forEach(x=> list.push({id:uid('e'), marca:x.marca||x.brand||'', modelo:x.modelo||x.model||'', codigo:x.codigo||x.code||'', descripcion:x.descripcion||x.description||''}));
+    store.put('codes', list); renderConfig();
+  }; fr.readAsText(f);
+}
+</script>
+</body>
+</html>
