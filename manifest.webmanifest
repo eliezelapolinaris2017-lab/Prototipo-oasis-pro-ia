@@ -1,0 +1,13 @@
+{
+  "name": "OASIS PRO IA – Nexus Tools PR",
+  "short_name": "OASIS PRO IA",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1a24",
+  "theme_color": "#0e1a24",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
